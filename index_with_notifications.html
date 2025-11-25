@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="10">
+    <title>Live ₹50 Target Tracker</title>
+    <style>
+        /* [Previous CSS styles here - keeping same as live_dashboard.html] */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            padding: 20px;
+        }
+
+        .notification-banner {
+            background: #fbbf24;
+            color: #000;
+            padding: 10px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .notification-banner button {
+            background: #4ade80;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        /* Include all other styles from live_dashboard.html */
+    </style>
+</head>
+<body>
+    <div class="notification-banner" id="notificationBanner">
+        Enable browser notifications to get alerts when LTP approaches low!
+        <button onclick="enableNotifications()">Enable Notifications</button>
+        <button onclick="dismissBanner()">Dismiss</button>
+    </div>
+
+    <!-- Rest of your dashboard HTML -->
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Live ₹50 Target Tracker</h1>
+            <div class="subtitle">NIFTY Options - Nearest to ₹50 Low</div>
+            <div class="time" id="lastUpdate">Loading...</div>
+        </div>
+        <div id="dashboard">Loading...</div>
+    </div>
+
+    <script>
+        let previousData = null;
+        let notificationsEnabled = false;
+
+        // Check if notifications are supported
+        if ("Notification" in window) {
+            if (Notification.permission === "default") {
+                document.getElementById('notificationBanner').style.display = 'block';
+            } else if (Notification.permission === "granted") {
+                notificationsEnabled = true;
+            }
+        }
+
+        function enableNotifications() {
+            Notification.requestPermission().then(permission => {
+                if (permission === "granted") {
+                    notificationsEnabled = true;
+                    dismissBanner();
+                    new Notification("Notifications Enabled!", {
+                        body: "You'll get alerts when LTP approaches the low",
+                        icon: "https://imkapilagar.github.io/Option_Chain/favicon.ico"
+                    });
+                }
+            });
+        }
+
+        function dismissBanner() {
+            document.getElementById('notificationBanner').style.display = 'none';
+        }
+
+        function checkForAlerts(data) {
+            if (!notificationsEnabled || !previousData) return;
+
+            // Check each thread
+            Object.keys(data).forEach(threadKey => {
+                const thread = data[threadKey];
+                const prevThread = previousData[threadKey];
+
+                if (!thread || !prevThread) return;
+
+                // Check CE
+                if (thread.ce_strike && prevThread.ce_strike) {
+                    const ce = thread.ce_strike;
+                    const diff = ce.ltp - ce.low;
+
+                    if (diff >= 0 && diff <= 2) {
+                        const prevDiff = prevThread.ce_strike.ltp - prevThread.ce_strike.low;
+
+                        // Only notify if just entered alert zone
+                        if (prevDiff > 2 || !prevThread.ce_strike) {
+                            new Notification(`🔔 LOW ALERT - ${thread.timeframe}`, {
+                                body: `CE ${ce.strike}: LTP ₹${ce.ltp.toFixed(2)} approaching LOW ₹${ce.low.toFixed(2)}`,
+                                icon: "https://imkapilagar.github.io/Option_Chain/favicon.ico",
+                                tag: `ce-${threadKey}`,
+                                requireInteraction: true
+                            });
+                        }
+                    }
+                }
+
+                // Check PE
+                if (thread.pe_strike && prevThread.pe_strike) {
+                    const pe = thread.pe_strike;
+                    const diff = pe.ltp - pe.low;
+
+                    if (diff >= 0 && diff <= 2) {
+                        const prevDiff = prevThread.pe_strike.ltp - prevThread.pe_strike.low;
+
+                        if (prevDiff > 2 || !prevThread.pe_strike) {
+                            new Notification(`🔔 LOW ALERT - ${thread.timeframe}`, {
+                                body: `PE ${pe.strike}: LTP ₹${pe.ltp.toFixed(2)} approaching LOW ₹${pe.low.toFixed(2)}`,
+                                icon: "https://imkapilagar.github.io/Option_Chain/favicon.ico",
+                                tag: `pe-${threadKey}`,
+                                requireInteraction: true
+                            });
+                        }
+                    }
+                }
+            });
+        }
+
+        // Fetch data every 10 seconds
+        async function fetchData() {
+            try {
+                const response = await fetch('output/debug_tracking_20251125.json');
+                const data = await response.json();
+
+                // Check for alerts
+                checkForAlerts(data);
+
+                // Update previous data
+                previousData = JSON.parse(JSON.stringify(data));
+
+                // Update dashboard (you'll need to add your rendering logic here)
+                updateDashboard(data);
+
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        function updateDashboard(data) {
+            // Add your dashboard rendering logic here
+            document.getElementById('lastUpdate').textContent =
+                `Last Updated: ${new Date().toLocaleString()}`;
+        }
+
+        // Start fetching
+        fetchData();
+        setInterval(fetchData, 10000); // Every 10 seconds
+    </script>
+</body>
+</html>
