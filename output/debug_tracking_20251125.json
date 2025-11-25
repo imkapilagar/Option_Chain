@@ -1,26 +1,25 @@
 {
   "thread_1": {
-    "timeframe": "09:30-10:30",
-    "start_time": "09:30",
-    "end_time": "10:30",
+    "timeframe": "10:00-11:00",
+    "start_time": "10:00",
+    "end_time": "11:00",
     "status": "active",
-    "samples": 209,
-    "last_update": "10:52:31",
+    "last_update": "11:09:48",
     "ce_strike": {
-      "strike": 26000,
-      "low": 38.25,
-      "ltp": 42.25,
-      "distance": 11.75,
-      "samples": 55,
-      "last_update": "10:52:31"
+      "strike": 25900,
+      "low": 59.65,
+      "ltp": 62.1,
+      "distance": 9.649999999999999,
+      "samples": 1,
+      "last_update": "11:09:48"
     },
     "pe_strike": {
       "strike": 26050,
-      "low": 61.15,
-      "ltp": 81.25,
-      "distance": 11.149999999999999,
-      "samples": 55,
-      "last_update": "10:52:31"
+      "low": 59.4,
+      "ltp": 133.65,
+      "distance": 9.399999999999999,
+      "samples": 1,
+      "last_update": "11:09:48"
     }
   }
 }
